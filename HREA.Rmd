@@ -1,0 +1,299 @@
+---
+title: "Untitled"
+author: "Jade Lai"
+date: "10/5/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, include=FALSE}
+library(readr)
+library(dplyr)
+library(rsample)
+library(caret)
+library(ggplot2)
+attrition <- read_csv("HR Employee Attrition.csv")
+```
+```{r, echo=FALSE, include=FALSE}
+dim(attrition)
+```
+```{r, echo=FALSE, include=FALSE}
+str(attrition)
+```
+# I. Introduction
+Data analytics sets itself apart from data analysis by providing guidance on actions and their expected outcomes. While data analysis offers insights into the current situation, data analytics predicts future results based on specific actions. Put simply, data analysis focuses on the past and present, while data analytics is oriented towards the future.
+
+The following case serves as an example of predicting attrition for employees within a company.
+
+## Goal
+
+How can we identify the relationship between the features? How can we categorize our employee and take action separately for each group? How can we improve the atrition rate? All these kind of questions can be answered by using data analyttics techniques
+
+## Result 
+By using statistics, programming and machine learning techniques, I can find the patterns hidden in the data. With this information I can built the model to predict the attrition among employee with provided accuracy
+
+## Project duration
+Project duration varies between 2 weeks - 2 months. The project starts by getting an understanding of the situation and gathering the right data. After collecting the right data, I start analyzing the data and share the results. Finally, I will make the algorithm or model with you can implement in your business
+
+# II. Exploration Data Analyst
+The ability to predict when the employee leave the job is valuable for every business to develop the business management. Attrition rate is defined as the number of leaving employee divided by the number of current employee. In order to apply the modeling technique to predict attrition by Random Foreast athgorithm, we need to understand the employee behavior and characteristics which signal the risk of employee attrition.
+
+In this example, I will look into the HR employee attrition dataset.
+
+```{r, echo=FALSE, include=FALSE}
+# no missing data
+sum(is.na(attrition))
+```
+## 1. What is the attrition rate?
+
+```{r, echo=FALSE, fig.align='center',fig.height=3}
+df <- attrition%>% 
+  group_by(Attrition) %>% # Variable to be transformed
+  count() %>% 
+  ungroup() %>% 
+  mutate(perc = `n` / sum(`n`)) %>% 
+  arrange(perc) %>%
+  mutate(labels = scales::percent(perc))
+ggplot(df, aes(x = "", y = perc, fill = Attrition)) +
+  geom_col() +
+  geom_text(aes(label = labels),
+            position = position_stack(vjust = 0.5)) +
+ theme_void() +
+  coord_polar(theta = "y")
+```
+
+The employee attrition rate is around 16%. According to experts in the field of the human resources, the human resource consumption rate of each enterprise from 4% to 6% is a stable level. Therefore the rate of this company is at a dangerous level.The company should take action to decrease this rate. 
+
+## 2. What is the ratio of gender in company?
+
+```{r, echo=FALSE, fig.align='center',fig.height=3}
+df1 <- attrition%>% 
+  group_by(Gender) %>% # Variable to be transformed
+  count() %>% 
+  ungroup() %>% 
+  mutate(perc = `n` / sum(`n`)) %>% 
+  arrange(perc) %>%
+  mutate(labels = scales::percent(perc))
+
+ggplot(df1, aes(x = "", y = perc, fill = Gender)) +
+  geom_col() +
+  geom_text(aes(label = labels),
+            position = position_stack(vjust = 0.5)) +
+ theme_void() +
+  coord_polar(theta = "y")
+```
+
+The percentage of male employees is higher than female employees (more than 20%)
+
+
+## 3. Distribution of attrition by Job level
+
+```{r, echo=FALSE, fig.align='center',fig.height=3}
+data <- attrition %>%
+  subset(Attrition == "Yes")
+ggplot(attrition, aes(x = JobLevel)) +
+  geom_bar(fill = "blue") 
+```
+
+- Employees at Level 1 and 2 (Entry and Middle level) have a very high rate of leaving the company. They are usually very young people. 
+
+- Employees at Level 4 and 5 have a very low turnover rate. 
+
+- In conclusion, young employees who have just joined company have a very high rate to leave.
+
+## 4.How do monthly salary change according the year working at company?
+
+
+```{r, echo=FALSE, fig.align='center',fig.height=3, warning=FALSE}
+da <- attrition %>% 
+  mutate(
+    year_group = dplyr::case_when(
+      YearsAtCompany <= 5            ~ "0-5",
+      YearsAtCompany > 5 & YearsAtCompany <= 10 ~ "6-10",
+      YearsAtCompany > 10 & YearsAtCompany <= 15 ~ "11-15",
+      YearsAtCompany > 15 & YearsAtCompany <= 20 ~ "16-20",
+      YearsAtCompany > 20 & YearsAtCompany <= 25 ~ "21-25",
+      YearsAtCompany > 25 & YearsAtCompany <= 30 ~ "26-30",
+      YearsAtCompany > 30 & YearsAtCompany <= 35 ~ "31-35",
+      YearsAtCompany > 35 & YearsAtCompany <= 40 ~ "36-40",
+    ),
+    # Convert to factor
+    year_group = factor(
+      year_group,
+      level = c("0-5", "6-10","11-15", "16-20", "21-25", "26-30", "31-35", "36-40")
+    )
+  ) 
+
+da <- da %>% group_by(year_group) %>% 
+  summarise(mean_salary=mean(MonthlyIncome),
+            .groups = 'drop')
+
+da%>%
+  ggplot(aes(x=year_group, y=mean_salary,  group = 8)) +
+    geom_line(color="grey", size = 2) +
+    geom_point(shape=21, color="black", fill="#69b3a2", size=6)
+```
+- Following the line graph, during the period of working with the company, the average of monthly salary increase gradually overtime. This proves that when working for a long time, the employee will have a decent salary.
+
+- However, there is a decrease of salary for working from 35-40 but not much. The reason may be that after a long period working in this company, these employees are nearing retirement age, so their productivity falls or they have ceded senior positions for young leaders, ...
+
+# III. Chi Square test 
+
+## Definition
+
+Chi-Square test in R is a statistical method which used to determine if two categorical variables have a significant correlation between them. The two variables are selected from the same population
+
+We use Chi-Square test to test the correlation between working over time and attrition rate. If a correlation is being found, we can plan for improving the attrition rate.
+
+Particularly in this test, we have to check the p-values. Moreover, like all statistical tests, we assume this test as a null hypothesis and an alternate hypothesis.
+
+The main thing is, we reject the null hypothesis if the p-value that comes out in the result is less than a predetermined significance level, which is 0.05 usually, then we reject the null hypothesis.
+
+H0: There is no relationship between the attrition and overtime
+
+HA: There is a significant relationship between attrition and overtime
+
+```{r, echo=FALSE, fig.align='center',fig.height=3}
+chisq.test(attrition$Attrition,attrition$OverTime)
+```
+We have a high chi-squared value and a p-value of less than 0.05 significance level. So we reject the null hypothesis and conclude that there is a significant relationship between attrition and overtime.
+
+# IV. Predictive model for attrition
+The purpose of this analysis was to identify the effective model to predict the employee attrition. In this report, we compare between Random forest model and CART (A classification and Regression Tree) model.
+
+The measures use in comparing two models will be: Accuracy, Kappa value.
+
+## 1. Random Forest
+
+Random Forest is a highly effective algorithm for attrition classification, which involves predicting and understanding employee turnover within an organization. By leveraging the power of ensemble learning, Random Forest combines multiple decision trees to provide accurate and reliable predictions regarding attrition. It considers various features such as employee demographics, job-related factors, performance metrics, and satisfaction surveys to identify patterns and factors contributing to attrition. The algorithm's ability to handle a large number of input variables and handle complex interactions makes it ideal for analyzing and predicting attrition. 
+
+```{r, echo=FALSE, fig.align='center',fig.height=3}
+set.seed(123)
+att_split <- initial_split(attrition[,-c(9,27)], prop = 0.7, strata = "Attrition")
+att_train <- training(att_split)
+att_test <- testing(att_split)
+```
+```{r, echo=FALSE, include=FALSE}
+library(recipes)
+att_train <- recipe(Attrition ~ ., data = att_train) %>%
+step_nzv(all_nominal()) %>%
+step_center(all_numeric(), -all_outcomes()) %>%
+step_scale(all_numeric(), -all_outcomes()) %>%
+step_dummy(all_nominal(), -all_outcomes(), one_hot = TRUE)%>%
+  prep(att_train) %>%
+bake(att_train)
+```
+
+```{r, echo=FALSE, include=FALSE}
+att_test <- recipe(Attrition ~ ., data = att_test) %>%
+step_nzv(all_nominal()) %>%
+step_center(all_numeric(), -all_outcomes()) %>%
+step_scale(all_numeric(), -all_outcomes()) %>%
+step_dummy(all_nominal(), -all_outcomes(), one_hot = TRUE)%>%
+  prep(att_test) %>%
+bake(att_test)
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+library(caTools)
+library(randomForest)
+att_train$Attrition <- as.factor(att_train$Attrition)
+```
+
+```{r, echo=FALSE, include=FALSE}
+set.seed(120)  # Setting seed
+classifier_RF = randomForest(x = att_train[-25],
+                             y = att_train$Attrition,
+                             ntree = 500)
+```
+
+```{r, echo=FALSE, include=FALSE}
+y_pred = predict(classifier_RF, newdata = att_test[-25])
+  
+# Confusion Matrix
+confusion_mtx = table(att_test$Attrition, y_pred)
+# Plotting model
+plot(classifier_RF)
+  
+```
+
+```{r, echo = FALSE}
+att_test$Attrition <- as.factor(att_test$Attrition)
+confusionMatrix(y_pred,att_test$Attrition, positive="Yes")
+```
+
+## 2. CART Model (Classification and Regression Trees) 
+
+CART Model (Classification and Regression Trees) is a versatile algorithm used for attrition classification, aiming to predict and understand employee turnover within an organization. CART models utilize decision trees, which recursively split the data based on the most informative features, to create a hierarchical structure of rules for classification. This algorithm is particularly useful for attrition classification as it can handle both categorical and continuous variables, making it suitable for analyzing various factors influencing attrition, such as employee demographics, performance metrics, and job-related factors. By constructing a binary tree structure, CART models offer interpretable rules that help identify the key drivers of attrition. With its flexibility, simplicity, and capability to handle complex interactions, CART is an effective tool for organizations seeking to gain insights into attrition patterns and make informed decisions to mitigate employee turnover.
+
+```{r, include=FALSE}
+library(rpart)
+library(caret)
+cart <- rpart(Attrition~., data =att_train)
+pred_rpart <- predict(cart, att_test, type = "class")
+```
+
+```{r, echo = FALSE}
+att_test$Attrition <- as.factor(att_test$Attrition)
+confusionMatrix(pred_rpart,att_test$Attrition, positive="Yes")
+```
+
+## 3. Comparation
+
+After careful consideration, we would opt for the CART model over the Random Forest algorithm. Although Random Forest exhibits a high accuracy of approximately 0.85, its Kappa value is significantly low at only 0.17. In contrast, the CART model demonstrates an accuracy of about 0.84 with a comparatively higher Kappa value of 0.2573. Hence, based on both accuracy and Kappa value, the CART model emerges as the preferred choice.
+
+## 4. Feature Importance
+
+```{r, echo = FALSE, fig.align='center',fig.height=5}
+df <- data.frame(imp = cart$variable.importance)
+df2 <- df %>% 
+  tibble::rownames_to_column() %>% 
+  dplyr::rename("variable" = rowname) %>% 
+  dplyr::arrange(imp) %>%
+  dplyr::mutate(variable = forcats::fct_inorder(variable))
+ggplot2::ggplot(df2) +
+  geom_col(aes(x = variable, y = imp),
+           col = "black", show.legend = F) +
+  coord_flip() +
+  scale_fill_grey() +
+  theme_bw()
+```
+
+The bar chart above shows the importance of some features such as MonthlyIncome, TotalWorking Years and Overtime variables. Combining with the statistic test and descriptive analysis above, we deeply dive in the variable and suggest recommendation for business
+
+# V. Recommendation
+
+## 1. Monthly income
+
+```{r, echo = FALSE, fig.align='center',fig.height=3}
+attrition %>% ggplot(aes(x=Attrition, y=MonthlyIncome)) +
+  geom_boxplot() + 
+  theme_minimal()
+```
+The data suggests that leaving people have lower average monthly income. This make sense because money is the big motivation, and employees may receive offers with better pay from other organization. Therefore, if the company want to try to keep employees for a longer period, it might be a good idea to offer them a raise.
+
+## 2. Total Years of Working
+
+```{r, echo = FALSE, fig.align='center',fig.height=3}
+attrition %>% ggplot(aes(x=Attrition, y=TotalWorkingYears)) +
+  geom_boxplot() + 
+  theme_minimal()
+```
+
+The data displays employees with more extensive work history correlates with lower attrition. It could be due to various reasons. Maybe because experienced employees are already established their career, and want to settle down or it could be some reasons like: having higher income or becoming a senior role as a result of their working history. Therefore, organization should consider working experience in deciding who to hire over other factors such as education, skills, and core competencies. 
+
+## Overtime 
+
+```{r, echo = FALSE, fig.align='center',fig.height=3}
+ggplot(attrition) +
+  aes(x=Attrition, fill = OverTime) +
+  geom_bar() +
+  scale_fill_hue() +
+  theme_minimal()
+```
+It is obvious that the Overtime is the second greatest predictor of employee attrition. This might be because of a lack of work and life balance, or various factor. Therefore, the company could try to reduce the amount of overtime their employee worked.
+
