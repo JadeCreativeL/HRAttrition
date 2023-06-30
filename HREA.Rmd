@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Employee Attrition Analysis"
 author: "Jade Lai"
 date: "10/5/2022"
 output: pdf_document
@@ -30,7 +30,7 @@ The following case serves as an example of predicting attrition for employees wi
 
 ## Goal
 
-How can we identify the relationship between the features? How can we categorize our employee and take action separately for each group? How can we improve the atrition rate? All these kind of questions can be answered by using data analyttics techniques
+How can we identify the relationship between the features? How can we categorize our employee and take action separately for each group? How can we improve the atrition rate? All these kind of questions can be answered by using data analytics techniques
 
 ## Result 
 By using statistics, programming and machine learning techniques, I can find the patterns hidden in the data. With this information I can built the model to predict the attrition among employee with provided accuracy
@@ -39,7 +39,7 @@ By using statistics, programming and machine learning techniques, I can find the
 Project duration varies between 2 weeks - 2 months. The project starts by getting an understanding of the situation and gathering the right data. After collecting the right data, I start analyzing the data and share the results. Finally, I will make the algorithm or model with you can implement in your business
 
 # II. Exploration Data Analyst
-The ability to predict when the employee leave the job is valuable for every business to develop the business management. Attrition rate is defined as the number of leaving employee divided by the number of current employee. In order to apply the modeling technique to predict attrition by Random Foreast athgorithm, we need to understand the employee behavior and characteristics which signal the risk of employee attrition.
+The ability to predict when the employee leave the job is valuable for every business to develop the business management. Attrition rate is defined as the number of leaving employee divided by the number of current employee. In order to apply the modeling technique to predict attrition by Random Forest and CART model, we need to understand the employee behavior and characteristics which signal the risk of employee attrition.
 
 In this example, I will look into the HR employee attrition dataset.
 
