@@ -14,3 +14,5 @@ By using statistics, programming and machine learning techniques, I can find the
 
 ## Project duration
 Project duration varies between 2 weeks - 2 months. The project starts by getting an understanding of the situation and gathering the right data. After collecting the right data, I start analyzing the data and share the results. Finally, I will make the algorithm or model with you can implement in your business
+
+To find more detail, please read my pdf report
